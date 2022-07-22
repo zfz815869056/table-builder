@@ -1,0 +1,20 @@
+{
+    "name": "zzh/table-builder",
+    "description": "Self use table builder",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Zzh\\TableBuilder\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "zzh",
+            "email": "815869056@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0"
+    }
+}
