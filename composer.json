@@ -1,11 +1,11 @@
 {
-    "name": "zzh/table-builder",
+    "name": "zhuzhihao/table-builder",
     "description": "Self use table builder",
     "type": "library",
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Zzh\\TableBuilder\\": "src/"
+            "Zhuzhihao\\TableBuilder\\": "src/"
         }
     },
     "authors": [

@@ -1,7 +1,7 @@
 <?php
 declare (strict_types=1);
 
-namespace zzh\src\builder;
+namespace zhuzhihao\src\builder;
 
 use think\facade\View;
 
