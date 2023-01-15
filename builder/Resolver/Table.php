@@ -1,11 +1,11 @@
 <?php
 declare (strict_types=1);
 
-namespace zhuzhihao\src\builder;
+namespace Resolver;
 
 use think\facade\View;
 
-class TableBuilder
+class Table
 {
 
     /**
@@ -17,30 +17,25 @@ class TableBuilder
      * @var array 模板变量
      */
     private $_vars = [
-        'page_title'       => '',        // 页面标题
-        'page_tips'        => '',        // 页面提示
-        'page_tips_top'    => '',        // 页面提示[top]
-        'page_tips_search' => '',        // 页面提示[search]
-        'page_tips_bottom' => '',        // 页面提示[bottom]
-        'page_size'        => '',        // 每页显示的行数
-        'tips_type'        => '',        // 页面提示类型
-        'extra_js'         => '',        // 额外JS代码
-        'extra_css'        => '',        // 额外CSS代码
-        'extra_html'       => '',        // 额外HTML代码
-        'columns'          => [],        // 表格列集合
-        'right_buttons'    => [],        // 表格右侧按钮
-        'top_buttons'      => [],        // 顶部栏按钮组[toolbar]
-        'data_url'         => '',        // 表格数据源
-        'add_url'          => '',        // 默认的新增地址
-        'edit_url'         => '',        // 默认的修改地址
-        'del_url'          => '',        // 默认的删除地址
-        'export_url'       => '',        // 默认的导出地址
-        'sort_url'         => '',        // 默认的排序地址
-        'search'           => [],        // 搜索参数
-        'js_url'           => [],        // 额外JS代码(文件名)
-        'totalRow'         => 'false',        // 是否开启合计行
-        'switch_tool'      => [],    //开关绑定栏,
-        'extra_map'        => []
+        'extra_js'      => '',          // 额外JS代码
+        'extra_css'     => '',          // 额外CSS代码
+        'extra_html'    => '',          // 额外HTML代码
+        'columns'       => [],          // 表格列集合
+        'right_buttons' => [],          // 表格右侧按钮
+        'top_buttons'   => [],          // 顶部栏按钮组[toolbar]
+        'data_url'      => '',          // 表格数据源
+        'add_url'       => '',          // 默认的新增地址
+        'edit_url'      => '',          // 默认的修改地址
+        'del_url'       => '',          // 默认的删除地址
+        'export_url'    => '',          // 默认的导出地址
+        'sort_url'      => '',          // 默认的排序地址
+        'search'        => [],          // 搜索参数
+        'js_url'        => [],          // 额外JS代码(文件名)
+        'totalRow'      => 'false',     // 是否开启合计行
+        'switch_tool'   => [],          //开关绑定栏,
+        'sort_tool'     => [],          //排序绑定栏
+        'extra_map'     => [],
+        'census'        => []
     ];
 
 
@@ -103,12 +98,13 @@ class TableBuilder
         $name = request()->controller() . '_' . request()->action();
 
         if ($this->_vars['extra_map']) {
-            ExtraMapFront::getInstance()->setExtraMap($this->_vars['extra_map'], $name);
+            TableFront::getInstance()->setExtraMap($this->_vars['extra_map'], $name);
         }
 
         $this->_vars['extra_map'] = [
             'name' => $name
         ];
+
         View::assign($this->_vars);
         return View::fetch($this->_template);
     }
@@ -222,13 +218,12 @@ class TableBuilder
      * @param bool $time -- 是否开启时间搜索，默认true
      * @return $this
      */
-    public function setSearch(SearchFront $searchFront, $time = true)
+    public function setSearch(TableFront $tableFront, $time = true)
     {
 
         $search = [];
-        if (!empty($searchFront->getSearch())) {
-
-            foreach ($searchFront->getSearch() as $key => $vo) {
+        if (!empty($tableFront->getSearch())) {
+            foreach ($tableFront->getSearch() as $key => $vo) {
                 $data['key'] = $vo[0] ?? '';  // 字段key
                 $data['name'] = $vo[1] ?? '';  // 字段名称
                 $data['type'] = $vo[2] ?? '';  // 类型：input/select
@@ -307,11 +302,11 @@ class TableBuilder
             default:
                 // 默认属性
                 $btn_attribute = [
-                    'title'   => $attribute['title'],
-                    'icon'    => $attribute['icon'],
+                    'title'   => isset($attribute['title']) ? $attribute['title'] : '',
+                    'icon'    => isset($attribute['icon']) ? $attribute['icon'] : '',
                     'class'   => 'layui-btn layui-btn-danger layui-btn-sm',
-                    'onclick' => $attribute['onclick'],
-                    'url'     => $attribute['url'],
+                    'onclick' => isset($attribute['onclick']) ? $attribute['onclick'] : '',
+                    'url'     => isset($attribute['url']) ? $attribute['url'] : '',
                 ];
                 break;
         }
@@ -365,6 +360,20 @@ class TableBuilder
         return $this;
     }
 
+    /**
+     * 添加开关绑定栏
+     * @param array $tool 开关组
+     *                    例如：['name'=>'status','pk'=>'id','text'=>'锁定|正常']
+     * @return $this
+     */
+    public function addSortTool($tool = [])
+    {
+        if (!empty($tool)) {
+            $this->_vars['sort_tool'] = array_merge($this->_vars['sort_tool'], $tool);
+        }
+        return $this;
+    }
+
 
     /**
      * 额外JS代码，
@@ -396,6 +405,44 @@ class TableBuilder
     public function addExtraMap($map = [])
     {
         $this->_vars['extra_map'] = $map;
+        return $this;
+    }
+
+
+    /**
+     * 额外html代码
+     * @param array $html
+     * @return $this
+     */
+    public function addExtraHtml($tpl = [])
+    {
+        if (empty($tpl)) return $this;
+        $path = app()->getAppPath() . '/tpl/';
+        $html = '';
+        //格式化右侧按钮
+        foreach ($this->_vars['right_buttons'] as &$vo) {
+            $vo['json'] = json_encode($vo);
+        }
+        View::assign($this->_vars);
+        foreach ($tpl as $v) {
+            $html .= View::fetch($path . $v . '.tpl');
+        }
+        $this->_vars['extra_html'] = $html;
+        return $this;
+    }
+
+
+    /**
+     * @param $model - model类或者controller
+     * @param $method - 执行方法 - 必须为静态方法
+     * @return $this
+     * 添加统计信息
+     */
+    public function addCensus($model = '', $method = '')
+    {
+        if ($model && $method) {
+            $this->_vars['census'] = $model::$method();
+        }
         return $this;
     }
 

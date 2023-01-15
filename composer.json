@@ -4,8 +4,11 @@
     "type": "library",
     "license": "MIT",
     "autoload": {
+        "classmap": [
+            "Builder.php"
+        ],
         "psr-4": {
-            "Zhuzhihao\\TableBuilder\\": "src/"
+            "Table\\": "Table"
         }
     },
     "authors": [
@@ -15,6 +18,13 @@
         }
     ],
     "require": {
-        "php": ">=7.1.0"
+        "php": ">=7.1.0",
+        "topthink/framework": "^6.0.0",
+        "topthink/think-orm": "^2.0",
+        "topthink/think-multi-app": "^1.0",
+        "topthink/think-view": "^1.0",
+        "topthink/think-captcha": "^3.0",
+        "topthink/think-api": "^1.0",
+        "topthink/think-image": "^1.0"
     }
 }
